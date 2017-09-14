@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="styles.css" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<title>Breakout - Charga and Lelen</title>
+</head>
+
+<body>
+	<div id="page">
+    	<div id="header" class="headerText">
+        	Breakout
+        </div>
+        <div id="content">
+        	<canvas id="breakoutCanvas" width="1050" height="500" style="border:1px solid #000000;">
+            	
+            </canvas>
+            <div id="startGame" onclick="startGame();">Start</div>
+        </div>
+        <div id="footer" class="footerText">Developed by Charga De Silva and Lelen Abeywardena</div>
+    </div>
+    <script type="text/javascript">
+		var PaddleX = 460;
+		var BallX = 500;
+		var BallY = 250;
+		var SPEED = 20;
+		var BALLSPEED = 2.5;
+		var canvas;
+		var context
+		var Paddle;
+		var Ball;
+		var init;
+		var MoveX=true, MoveY=true;
+		var bricks = [[],[],[],[],[],[],[],[]];
+		var imgBricks =[];
+		var score = 0;
+		var Heart;
+		var lives =3;
+		var newGame = true;
+		var round = 1;
+		
+		function init() {
+		  	canvas = document.getElementById("breakoutCanvas");
+			window.addEventListener( "keydown", doKeyDown);
+			context = canvas.getContext("2d");
+			
+			Paddle = new Image();
+	
+			Paddle.onload = function() {
+			  context.drawImage(Paddle, PaddleX, 490);
+			};
+			Paddle.src = 'images/Paddle.png';
+			
+			Ball = new Image();
+	
+			Ball.onload = function() {
+			  context.drawImage(Ball, BallX, BallY);
+			};
+			Ball.src = 'images/Ball.png';
+
+			//drawBricks();
+
+			Heart = new Image();
+			Heart.onload = function(){
+				for(var i =0; i<lives; i++){
+					context.drawImage(Heart, 980+i*20, 10);
+				};
+			}
+			Heart.src='images/Heart.png';
+
+			context.font="30px Verdana";
+			
+			context.fillText(score+"",10,22);
+						
+		  	
+		}
+
+		function updateScore(){
+			context.font="30px Verdana";
+			context.fillText(score+"",10,22);
+			var i =0;
+			while(bricks[i].length == 0){
+				if(i ==7){
+					clearInterval(init);
+					newGame = false;
+					if(round==1){
+						context.fillText("Press Start to Continue",350,300);
+						MoveX=true;
+						MoveY=true;
+						round++;
+					}
+					else if(round > 1){
+						context.fillText("YOU WIN!",430,300);
+					}
+					break;
+				}
+				i++;
+			}
+			if(bricks[bricks.length-1].length < 14){
+				Paddle.src = 'images/Short.png';
+			}
+						
+		}
+		
+		function drawBricks(){
+			Red = new Image();
+			Orange = new Image();
+			Green = new Image();
+			Yellow = new Image();
+			imgBricks.push(Green);
+			imgBricks.push(Green);
+			imgBricks.push(Yellow);
+			imgBricks.push(Yellow);
+			imgBricks.push(Orange);
+			imgBricks.push(Orange);
+			imgBricks.push(Red);
+			imgBricks.push(Red);
+			
+			
+
+			Red.onload = function() {
+				for (var j = 0; j < bricks.length; j++) {
+					for (var i = 0; i < 1050; i+=Red.width) {
+							bricks[j].push(i);
+							context.drawImage(imgBricks[j], i, 150-(10*j));
+						};
+				};
+			}
+			Red.src = 'images/Red.png';
+			Green.src = 'images/Green.png';
+			Orange.src = 'images/Orange.png';
+			Yellow.src = 'images/yellow.gif';
+		}
+						
+		function doKeyDown(e){
+			if(e.keyCode == 39) // RIGHT
+			{				
+				checkBoundaries(true);
+				refreshCanvas();
+				drawObjects();
+			}
+			if(e.keyCode == 37) // LEFT
+			{				
+				checkBoundaries(false);
+				refreshCanvas();
+				drawObjects()
+			}
+		}
+		
+		function refreshCanvas() {
+			canvas.width = canvas.width;
+		}
+		
+		function checkBoundaries(right){
+			if(right){
+				if(PaddleX < 1050-Paddle.width){ 
+					PaddleX+=SPEED;
+				}
+			}
+			else{
+				if(PaddleX > 0){ 
+					PaddleX-=SPEED;
+				}
+			}
+		}
+		
+		function moveBall(){
+			refreshCanvas();
+			reflectBall();
+			drawObjects();
+			gameOver();
+		}
+		
+		function drawObjects(){
+			updateScore();
+			context.drawImage(Paddle, PaddleX, 490);
+			context.drawImage(Ball, BallX, BallY);
+			for (var j = 0; j < bricks.length; j++) {
+				for (var i = 0; i < bricks[j].length; i++) {
+						context.drawImage(imgBricks[j], bricks[j][i], 150-(10*j));
+					};
+				};
+			for(var i =0; i<lives; i++){
+					context.drawImage(Heart, 1020-i*22, 10);
+				};
+
+		}
+		
+		function reflectBall(){
+			if(BallX <= 0 || BallX >= 1040){
+				MoveX = !MoveX;
+			}
+			if(BallY <= 0 || hitPaddle() || hitbrick()){
+				MoveY = !MoveY;
+			}
+			else if(BallY > 490){
+				BALLSPEED = 2.5;
+				lives-=1;	
+				BallX = 500;
+				BallY = 250;		
+
+			}
+			Movement(MoveX, MoveY)
+		}
+		
+		function Movement(x, y){
+			if(x == true){
+				BallX += BALLSPEED;
+			}
+			else if (x == false){
+				BallX -= BALLSPEED;
+			}
+			if(y == true){
+				BallY += BALLSPEED;
+			}
+			else if (y == false){
+				BallY -= BALLSPEED;
+			}
+		}
+		
+		function hitPaddle(){
+			if(BallX >= PaddleX && BallX <= PaddleX+Paddle.width && BallY >= 480 && BallY < 485){
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		function hitbrick(){
+			for (var j = 0; j < bricks.length; j++) {
+				for (var i = 0; i < bricks[j].length; i++) {
+					if(BallX >= bricks[j][i] && BallX <= bricks[j][i] + 75 && BallY <= 160-(10*j) && BallY >= 140-(10*j)){
+						bricks[j].splice(i,1);
+						score+=j+1;
+						BALLSPEED+=0.05;
+						return true;
+					}
+				};
+			};
+			return false;
+		}
+
+		function gameOver(){
+			if(lives == 0){
+				clearInterval(init);
+				bricks = [[],[],[],[],[],[],[],[]];
+				context.fillText("Game Over",430,300);
+				newGame = true;
+			}
+		}
+
+		function startGame(){
+			if(newGame){
+				lives =3;
+				score = 0;
+				canvas.width = canvas.width;
+				drawBricks();
+				init = setInterval(moveBall, 20); 
+			}
+			else{
+				BallY = 250;
+				BallX = 500;
+				drawBricks();
+				init = setInterval(moveBall, 20);
+			}
+		}
+		init();
+		//startGame();
+		//init = init();
+
+
+	</script>
+</body>
+</html>

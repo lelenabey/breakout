@@ -1,0 +1,49 @@
+@charset "utf-8";
+/* CSS Document */
+
+html, body{
+	margin:0;
+	padding:0;
+	border:0;
+}
+
+#page{
+	margin:auto;
+	width:1000px;
+}
+
+#header{
+	display:block;
+	height:75px;
+	line-height:75px;
+	text-align:center;
+}
+
+#content{
+	display:block;
+}
+
+#content img{
+	padding:0 !important;
+	margin:0 !important;
+	border:0 !important;
+}
+
+#footer{
+	display:block;
+	height:110px;
+}
+
+.headerText{
+	font-size:x-large;
+	color:#900;
+}
+
+.footerText{
+	font-size:x-small;
+	padding:10px 0px 10px 0px;
+}
+
+#startGame{
+	cursor:pointer;
+}
